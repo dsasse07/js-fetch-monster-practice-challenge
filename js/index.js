@@ -51,6 +51,7 @@ const createForm = _ => {
   let submit = document.createElement("input")
   submit.id = "submit-monster"
   submit.type = "submit"
+  submit.value = "Submit"
   submit.textContent = "Add Monster"
 
   newForm.append(nameLabel, newName, ageLabel, newAge, descriptionLabel, newDescription, submit)
@@ -155,10 +156,29 @@ const handleClicks = e => {
   }
 }
 
-// const postMonster = e => {
-//   e.preventDefault()
-//   console.log( e.target[0].value)
-// }
+const postMonster = e => {
+  debugger
+  e.preventDefault()
+  e.stopPropogation()
+  let formData = {
+    "name":e.target[0].value,
+    "age":e.target[1].value,
+    "description": e.target[2].value
+  }
+
+  let config = {
+    "method":"POST",
+    "headers": {
+      "Content-type":"application/json",
+      "Accepts":"application/json"
+      },
+    "body": JSON.stringify(formData)
+  }
+  
+  fetch(url, config)
+  .then( response => response.json() )
+  .then( data => console.log(data))
+}
 
 
 
@@ -166,10 +186,7 @@ nextButton.addEventListener('click', handleClicks)
 backButton.addEventListener('click', handleClicks)
 lastButton.addEventListener('click', handleClicks)
 firstButton.addEventListener('click', handleClicks)
-// newForm.addEventListener('submit', e => {
-//   e.preventDefault()
-//   console.log(e)
-// })
+document.querySelector("#monster-form").addEventListener('submit', postMonster)
 
 
 
