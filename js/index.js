@@ -20,6 +20,8 @@ let paginator = {
   "last":""
   }
 
+  let currentPage = parseInt(paginator.next) - 1 || parseInt(paginator.prev) + 1
+
 const createForm = _ => {
   let newForm = document.createElement("form")
   newForm.id = "monster-form"
@@ -88,6 +90,7 @@ const getMonsters = options => {
           paginator[pageName] = pageNum // Update link dictionary 
         }
       }
+      currentPage = parseInt(paginator.next) - 1 || parseInt(paginator.prev) + 1
       return response.json() })
     .then(monsters => {
       monsters.forEach( monster => renderMonster(monster) )
@@ -118,7 +121,11 @@ const renderMonster = monster => {
   description.className = "monster-description"
   description.textContent = `${monster.description}`
 
-  div.append(name, age, descriptionTitle, description)
+  let deleteButton = document.createElement("button")
+  deleteButton.className = "delete-monster"
+  deleteButton.textContent = "Delete Monster"
+
+  div.append(name, age, descriptionTitle, description, deleteButton)
   document.body.querySelector('#monster-container').append(div)
 
 }
@@ -150,16 +157,12 @@ const handleClicks = e => {
       getMonsters( {"limit": paginator.limit, "page": paginator.first} )
       break
     case (e.target === lastButton):
-      console.log(e.target)
       getMonsters( {"limit": paginator.limit, "page": paginator.last} )
       break
   }
 }
 
 const postMonster = e => {
-  debugger
-  e.preventDefault()
-  e.stopPropogation()
   let formData = {
     "name":e.target[0].value,
     "age":e.target[1].value,
@@ -170,23 +173,42 @@ const postMonster = e => {
     "method":"POST",
     "headers": {
       "Content-type":"application/json",
-      "Accepts":"application/json"
+      // "Accepts":"application/json"
       },
     "body": JSON.stringify(formData)
   }
   
   fetch(url, config)
-  .then( response => response.json() )
-  .then( data => console.log(data))
+  .then( response => {
+    if (!response.ok) {
+			throw new Error( response.statusText )
+    }
+    getMonsters({"limit":paginator.limit, "page": currentPage})
+  })
+  .catch( error => console.log(error))
 }
 
+const deleteMonster = monster => {
+  fetch(url+`/${monster.dataset.id}`, {"method":"DELETE"})  
+  monster.remove()
+}
 
 
 nextButton.addEventListener('click', handleClicks)
 backButton.addEventListener('click', handleClicks)
 lastButton.addEventListener('click', handleClicks)
 firstButton.addEventListener('click', handleClicks)
-document.querySelector("#monster-form").addEventListener('submit', postMonster)
+document.querySelector("#monster-form").addEventListener('submit', e => {
+  e.preventDefault()
+  postMonster(e)
+  e.target.reset()
+} )
+document.body.querySelector('#monster-container').addEventListener('click', e => {
+  if (e.target.className == "delete-monster") {
+    console.log("boog")
+    deleteMonster(e.target.closest(".monster-card") )
+  }
+})
 
 
 
